@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/firefist_quit" android:state_pressed="false"></item>
+    <item android:drawable="@drawable/firefist_quit_nulum" android:state_pressed="true"></item>
+</selector><!-- From: file:/C:/Users/희규/AndroidStudioProjects/FireFist/wear/src/main/res/drawable-xhdpi/sel_quit.xml -->
