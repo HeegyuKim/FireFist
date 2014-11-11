@@ -1,9 +1,0 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="unipi.kr.firefist.SplashActivity" >
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
-</menu>
-<!-- From: file:/C:/Users/희규/AndroidStudioProjects/FireFist/wear/src/main/res/menu/splash.xml -->
