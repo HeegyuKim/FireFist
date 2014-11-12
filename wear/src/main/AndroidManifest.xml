@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="unipi.kr.firefist" >
 
-    <uses-feature android:name="android.hardware.type.watch" />
+    <uses-feature android:name="android.hardware.type.watch" android:required="false"/>
 
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -14,9 +14,9 @@
         android:theme="@android:style/Theme.DeviceDefault" >
 
         <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version"
-            />
+        android:name="com.google.android.gms.version"
+        android:value="@integer/google_play_services_version"
+        />
 
         <activity
             android:name=".MainActivity"

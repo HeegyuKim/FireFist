@@ -9,6 +9,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -24,6 +25,7 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
@@ -44,6 +46,7 @@ public class GameActivity extends Activity
     private Button btnReset;
 
     GoogleApiClient client;
+    DataMapItem playerDataMap;
     boolean connected = false;
 
     SensorManager mSensorManager;
@@ -174,7 +177,57 @@ public class GameActivity extends Activity
 
     private void syncData()
     {
+        PendingResult<DataItemBuffer> buffer = Wearable.DataApi.getDataItems(client);
+        buffer.setResultCallback(new ResultCallback<DataItemBuffer>() {
+            @Override
+            public void onResult(DataItemBuffer dataItems) {
+                int count = dataItems.getCount();
+                boolean put = false;
 
+                for(int i = 0; i < count; ++i)
+                {
+                    DataItem item = dataItems.get(i);
+                    if(isPlayerUri(item.getUri()))
+                    {
+                        Log.d("게임", "기존의 데이터 맵 요청에 추가됨. " + item.getUri());
+                        PutDataMapRequest request = PutDataMapRequest.createFromDataMapItem(
+                                DataMapItem.fromDataItem(item)
+                        );
+                        putData(request.getDataMap());
+                        Wearable.DataApi.putDataItem(client, request.asPutDataRequest());
+                        put = true;
+                    }
+                }
+                if(!put)
+                {
+                    Log.d("게임", "새로운 데이터 맵 요청이 추가됨.");
+                    PutDataMapRequest request = PutDataMapRequest.create("/player");
+                    putData(request.getDataMap());
+                    Wearable.DataApi.putDataItem(client, request.asPutDataRequest());
+                }
+            }
+        });
+    }
+
+    private void putData(DataMap map)
+    {
+        float syncBest = map.getFloat("best_score", 0);
+        if(syncBest < maxScore)
+            map.putFloat("best_score", maxScore);
+
+        float syncTotal = map.getFloat("camul_score", 0);
+        syncTotal += score.getScore();
+        map.putFloat("camul_score", syncTotal);
+
+        float exp = map.getFloat("exp", 0);
+        exp += 1;
+        map.putFloat("exp", exp);
+
+    }
+
+    private boolean isPlayerUri(Uri uri)
+    {
+        return uri.getPath().equals("/player");
     }
 
     @Override

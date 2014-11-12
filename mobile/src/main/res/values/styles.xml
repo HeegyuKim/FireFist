@@ -3,6 +3,13 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
         <!-- Customize your theme here. -->
+        <item name="android:actionBarStyle">@style/FireFistActionBar</item>
+    </style>
+
+    <style name="FireFistActionBar"
+        parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/firefist_orange</item>
+        <item name="android:icon">@drawable/firefist_mobile_bar_icon</item>
     </style>
 
 </resources>

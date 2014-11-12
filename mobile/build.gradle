@@ -14,15 +14,16 @@ android {
     signingConfigs {
         release {
             keyAlias 'FireFist'
-            keyPassword 'FireFist'
+            keyPassword 'firefist'
             storeFile file('keystore.jks');
-            storePassword 'FireFist'
+            storePassword 'firefist'
         }
     }
     buildTypes {
         release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -30,5 +31,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
-    compile 'com.google.android.gms:play-services-wearable:+'
+    compile 'com.google.android.gms:play-services-wearable:5.0.77'
+    compile 'com.android.support:support-v4:20.0.0'
 }
