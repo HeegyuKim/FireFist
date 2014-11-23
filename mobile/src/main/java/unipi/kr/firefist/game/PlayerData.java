@@ -17,16 +17,8 @@ public class PlayerData {
     public float exp, bestScore, camulScore;
     public int coins;
 
-    public PlayerData()
-    {
-        name = "";
-        level = "물주먹";
-
-        cutlines = new TreeMap<Float, String>();
-        cutlines.put(0.0f, "물주먹");
-        cutlines.put(100.0f, "바람주먹");
-        cutlines.put(1000.0f, "불주먹");
-        cutlines.put(10000.0f, "핵주먹");
+    public PlayerData(TreeMap<Float, String> cutlines) {
+	    this.cutlines = cutlines;
     }
 
     public void setExp(float exp)

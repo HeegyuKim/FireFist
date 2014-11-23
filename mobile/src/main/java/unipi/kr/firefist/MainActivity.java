@@ -1,57 +1,280 @@
 package unipi.kr.firefist;
 
-import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.Wearable;
 
 import unipi.kr.firefist.game.FireFist;
+import unipi.kr.firefist.game.NotificationClearTask;
 import unipi.kr.firefist.game.PlayerData;
 import unipi.kr.firefist.game.PlayerListener;
+import unipi.kr.firefist.game.ScoreAgent;
+import unipi.kr.firefist.utils.ActivityPlus;
+import unipi.kr.firefist.utils.Vector3;
 
 
 public class MainActivity
         extends ActivityPlus
-    implements PlayerListener
+    implements PlayerListener,
+		SensorEventListener,
+		GoogleApiClient.OnConnectionFailedListener,
+		GoogleApiClient.ConnectionCallbacks
 {
 
     FireFist firefist;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+	private TextView textScore, textNotification;
 
-        firefist = new FireFist(this, this);
-    }
+	GoogleApiClient client;
+	DataMapItem playerDataMap;
+	boolean connected = false;
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        firefist.connect();
-    }
+	SensorManager mSensorManager;
+	Sensor mSensorLinear;
+	Vibrator mVibrator;
+
+	Handler handler;
+	ScoreAgent score;
+	NotificationClearTask lastTask;
 
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        firefist.disconnect();
-    }
+	float maxScore = 0,
+			totalScore = 0,
+			exp = 0;
+	int level = 1, coin = 0;
 
-    @Override
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+
+
+		// 객체 생성
+		client = new GoogleApiClient.Builder(this)
+				.addOnConnectionFailedListener(this)
+				.addConnectionCallbacks(this)
+				.addApi(Wearable.API)
+				.build();
+
+		handler = new Handler();
+		score = new ScoreAgent(0);
+		maxScore = 0;
+
+		initUI();
+	}
+
+	// UI 초기화를 하는 메서드
+	private void initUI()
+	{
+		textScore = (TextView) findViewById(R.id.main_text_result);
+		textNotification = (TextView) findViewById(R.id.main_text_notification);
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		client.connect();
+
+		try {
+			mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+			mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+			mSensorLinear = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+			if (!mSensorManager.registerListener(this, mSensorLinear, SensorManager.SENSOR_DELAY_GAME))
+				throw new Exception("센서를 사용할 수 없습니다.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			alert(this, "센서를 사용할 수 없습니다.", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i) {
+					finish();
+				}
+			});
+		}
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		if(mVibrator != null)
+		{
+			mSensorManager.unregisterListener(this);
+		}
+		if(client != null && client.isConnected())
+		{
+			client.disconnect();
+		}
+	}
+
+	// 밀리초만큼 진동함
+	private void vibrate(long milli)
+	{
+		if(mVibrator != null)
+		{
+			mVibrator.vibrate(milli);
+		}
+	}
+
+	// 현재 점수를 변경함
+	private void setScoreText(float score)
+	{
+		String text = String.format("%.1f점", score);
+		textScore.setText(text);
+	}
+
+	// 최고 점수를 변경하는 메서드
+	private void setMaxScore(float maxScore)
+	{
+		this.maxScore = maxScore;
+
+		textNotification.setText("최고점수 갱신!");
+
+		if(lastTask != null && !lastTask.isFinished())
+		{
+			lastTask.SetActivation(false);
+		}
+
+		lastTask = new NotificationClearTask(textNotification);
+		handler.postDelayed(
+				lastTask,
+				3000
+		);
+		vibrate(300);
+	}
+
+	private void syncData()
+	{
+		PendingResult<DataItemBuffer> buffer = Wearable.DataApi.getDataItems(client);
+		buffer.setResultCallback(new ResultCallback<DataItemBuffer>() {
+			@Override
+			public void onResult(DataItemBuffer dataItems) {
+				int count = dataItems.getCount();
+				boolean put = false;
+
+				for(int i = 0; i < count; ++i)
+				{
+					DataItem item = dataItems.get(i);
+					if(isPlayerUri(item.getUri()))
+					{
+						Log.d("게임", "기존의 데이터 맵 요청에 추가됨. " + item.getUri());
+						PutDataMapRequest request = PutDataMapRequest.createFromDataMapItem(
+								DataMapItem.fromDataItem(item)
+						);
+						putData(request.getDataMap());
+						Wearable.DataApi.putDataItem(client, request.asPutDataRequest());
+						put = true;
+					}
+				}
+				if(!put)
+				{
+					Log.d("게임", "새로운 데이터 맵 요청이 추가됨.");
+					PutDataMapRequest request = PutDataMapRequest.create("/player");
+					putData(request.getDataMap());
+					Wearable.DataApi.putDataItem(client, request.asPutDataRequest());
+				}
+			}
+		});
+	}
+
+	private void putData(DataMap map)
+	{
+		float syncBest = map.getFloat("best_score", 0);
+		if(syncBest < maxScore)
+			map.putFloat("best_score", maxScore);
+
+		float syncTotal = map.getFloat("camul_score", 0);
+		syncTotal += score.getScore();
+		map.putFloat("camul_score", syncTotal);
+
+		float exp = map.getFloat("exp", 0);
+		exp += 1;
+		map.putFloat("exp", exp);
+
+	}
+
+	private boolean isPlayerUri(Uri uri)
+	{
+		return uri.getPath().equals("/player");
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent sensorEvent) {
+		float []values = sensorEvent.values;
+
+		// 표본 추가
+		score.addSample(new Vector3(values[0], values[1], values[2]));
+
+		// 점수가 바뀌었다면?
+		if(score.isScoreChanged())
+		{
+			float currScore = score.getScore();
+
+			if(currScore < 5)
+				return;
+
+			// 최고점수 갱신
+			if(currScore > maxScore)
+			{
+				setMaxScore(currScore);
+			}
+
+			//
+			setScoreText(currScore);
+			score.notifyChanging();
+
+			exp += currScore / 10.0f;
+			totalScore += currScore;
+
+			if(connected)
+			{
+				syncData();
+			}
+		}
+	}
+
+
+	// Unused
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int i) {}
+
+	@Override
+	public void onConnected(Bundle bundle) {}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {}
+
+	@Override
+	public void onConnectionSuspended(int i) {}
+
+	@Override
     public void onPlayerDataChanged(final PlayerData playerData) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d("메인", "텍스트뷰 값들 바뀌었음");
-                text_f(R.id.main_text_exp, "%.2f xp", playerData.exp);
-                text_f(R.id.main_text_best_score, "%.1f N", playerData.bestScore);
-                text_f(R.id.main_text_camul_score, "%.1f N", playerData.camulScore);
-                text_f(R.id.main_text_coin, "%d", playerData.coins);
-                text_(R.id.main_text_name, playerData.name);
-                text_(R.id.main_text_level, playerData.level);
+	            Log.d("메인", "텍스트뷰 값들 바뀌었음");
             }
         });
     }
@@ -70,7 +293,7 @@ public class MainActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            Intent it = new Intent(this, SettingsActivity.class);
+            Intent it = new Intent(this, ProfileActivity.class);
             startActivity(it);
             return true;
         }

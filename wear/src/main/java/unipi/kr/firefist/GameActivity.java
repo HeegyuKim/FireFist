@@ -252,7 +252,7 @@ public class GameActivity extends Activity
         {
             float currScore = score.getScore();
 
-            if(currScore < 15)
+            if(currScore < 5)
                 return;
 
             // 최고점수 갱신

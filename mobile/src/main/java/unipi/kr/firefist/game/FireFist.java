@@ -3,12 +3,17 @@ package unipi.kr.firefist.game;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.games.Games;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.PlusClient;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -17,6 +22,10 @@ import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
+
+import java.util.TreeMap;
+
+import unipi.kr.firefist.R;
 
 /**
  * Created by KimHeekue on 2014-11-12.
@@ -27,37 +36,52 @@ implements GoogleApiClient.ConnectionCallbacks
     , DataApi.DataListener
 {
     Context context;
-    GoogleApiClient client;
-    PlayerData data;
-    boolean connected = false;
+	GoogleApiClient client;
+	PlayerData data;
     PlayerListener listener;
 
 
     public FireFist(Context context, PlayerListener listener)
     {
         this.context = context;
-        client = new GoogleApiClient.Builder(context)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+
+	    //
+	    // API 객체들 생성
+
+	    client = new GoogleApiClient.Builder(context)
+			    .addApi(Wearable.API)
+			    .addConnectionCallbacks(this)
+			    .addOnConnectionFailedListener(this)
+			    .build();
+
+	    //
+	    // 플레이어 데이터 생성
+	    TreeMap<Float, String> cutlines = new TreeMap<Float, String>();
+	    cutlines.put(0.0f, context.getString(R.string.level_1));
+	    cutlines.put(100.0f, context.getString(R.string.level_2));
+	    cutlines.put(1000.0f, context.getString(R.string.level_3));
+	    cutlines.put(10000.0f, context.getString(R.string.level_4));
+
 
         // set player data to default
-        data = new PlayerData();
+        data = new PlayerData(cutlines);
         data.bestScore = 0;
         data.camulScore = 0;
         data.exp = 0;
         data.coins = 0;
-        data.level = "물주먹";
-        data.name = "멋쟁이 파이터";
+        data.level = context.getString(R.string.level_1);
+        data.name = context.getString(R.string.player_name_default);
 
         this.listener = listener;
     }
 
-    public PlayerData getPlayerData()
-    {
-        return data;
-    }
+
+
+	public PlayerData getPlayerData()
+	{
+		return data;
+	}
+	public GoogleApiClient getGoogleApiClient() { return client; }
 
 
 
@@ -72,9 +96,12 @@ implements GoogleApiClient.ConnectionCallbacks
         if(client != null)
         {
             client.disconnect();
-            connected = false;
         }
     }
+
+
+
+
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
@@ -92,6 +119,9 @@ implements GoogleApiClient.ConnectionCallbacks
             }
         }
     }
+
+
+
 
     private void findPlayerInBuffer(DataItemBuffer buffer)
     {
@@ -135,14 +165,13 @@ implements GoogleApiClient.ConnectionCallbacks
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        connected = false;
         Wearable.DataApi.removeListener(client, this);
+	    Log.d("FireFist", "연결 실패~");
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        connected = true;
-
+	    Log.d("FireFist", "연결 성공");
         Wearable.DataApi.addListener(client, this);
 
         PendingResult<DataItemBuffer> result =
@@ -153,11 +182,36 @@ implements GoogleApiClient.ConnectionCallbacks
                 findPlayerInBuffer(dataItems);
             }
         });
+
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        connected = false;
-        Wearable.DataApi.removeListener(client, this);
+	    Log.d("FireFist", "연결 중단!");
+	    Wearable.DataApi.removeListener(client, this);
     }
+
+
+	public static PlusClient createPlusClient(
+			Context context,
+			GooglePlayServicesClient.ConnectionCallbacks callbacks,
+			GooglePlayServicesClient.OnConnectionFailedListener lis
+	)
+	{
+		return new PlusClient.Builder(context, callbacks, lis)
+				.setScopes( TextUtils.join(
+								" ",
+								new String[]{
+										"https://www.googleapis.com/auth/plus.login",
+										"https://www.googleapis.com/auth/plus.me",
+										"https://www.googleapis.com/auth/userinfo.email"
+								}
+						)
+				)
+				.setActions(
+						"http://schemas.google.com/AddActivity",
+						"http://schemas.google.com/BuyActivity"
+				)
+				.build();
+	}
 }

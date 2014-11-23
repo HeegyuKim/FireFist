@@ -2,35 +2,28 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 20
-    buildToolsVersion "20.0.0"
-
+    buildToolsVersion '20.0.0'
     defaultConfig {
-        applicationId "unipi.kr.firefist"
+        applicationId 'unipi.kr.firefist'
         minSdkVersion 15
         targetSdkVersion 20
-        versionCode 1
-        versionName "1.0"
-    }
-    signingConfigs {
-        release {
-            keyAlias 'FireFist'
-            keyPassword 'firefist'
-            storeFile file('keystore.jks');
-            storePassword 'firefist'
-        }
+        versionCode 2
+        versionName '1.1'
     }
     buildTypes {
         release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
+    }
+    productFlavors {
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
-    compile 'com.google.android.gms:play-services-wearable:5.0.77'
-    compile 'com.android.support:support-v4:20.0.0'
+    compile 'com.google.android.gms:play-services:+'
+    compile project(':volley')
+    compile project(':BaseGameUtils')
 }
