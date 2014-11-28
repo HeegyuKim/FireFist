@@ -33,8 +33,8 @@ public class ScoreAgent
 
     public void addSample(Vector3 acc)
     {
-        float accLen = acc.length() - 20;
-        if(accLen <= 0) return;
+        float accLen = acc.length();
+
 
         long currTime = System.currentTimeMillis();
         long delta = currTime - lastChangedTime;

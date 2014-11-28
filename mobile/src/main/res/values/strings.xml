@@ -2,14 +2,28 @@
 <resources>
 
     <string name="app_name">불주먹</string>
-    <string name="reset">초기화</string>
-    <string name="logout">로그아웃</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_splash">SplashActivity</string>
     <string name="app_id">251358046379</string>
-    <string name="camul_score">누적점수</string>
-    <string name="best_score">최고점수</string>
+    <!--
+        스플래시
+    -->
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="connecting">Google+ 에 연결 중입니다.</string>
+    <string name="signin_other_error">Google Play Game 로그인 중 에러가 발생하였습니다. 나중에 다시 시도해 주세요. </string>
+    <!--
+        메인
+    -->
+    <string name="new_best_score">새로운 최고점수 달성!</string>
+    <string name="firefist_power">불주먹 세기</string>
+    <string name="cracking_building">건물 부수기</string>
+    <string name="firefist_pvp">불주먹 PVP</string>
+    <string name="another_mode">다른 모드</string>
+    <!--
+        프로필
+    -->
+    <string name="profile">프로필</string>
+    <string name="title_activity_profile">프로필</string>
+    <string name="logout">로그아웃</string>
     <string name="player_name">이름</string>
     <string name="player_name_default">수련생</string>
     <string name="level">등급</string>
@@ -22,12 +36,17 @@
     <string name="exp">경험치</string>
     <string name="exp_unit">xp</string>
     <string name="coin">코인</string>
-    <string name="profile">프로필</string>
-    <string name="title_activity_profile">프로필</string>
-    <string name="connecting">Google+ 에 연결 중입니다.</string>
+    <string name="coin_unit"> 코인</string>
+    <string name="camul_score">누적점수</string>
+    <string name="best_score">최고점수</string>
+    <!--
+        건물 부수기
+    -->
+    <string name="title_activity_cracking">건물 부수기</string>
+    <string name="near_building">근처 건물</string>
+    <string name="finding">찾는 중...</string>
+    <string name="my_damage">입힌 피해량</string>
+    <string name="ranking">순위</string>
+    <string name="none">없음</string>
 
-    <string name="leaderboard_best_score">CgkIq9HtsKgHEAIQAQ</string>
-    <string name="leaderboard_camul_score">CgkIq9HtsKgHEAIQAg</string>
-    <string name="leaderboard_exp">CgkIq9HtsKgHEAIQAw</string>
-   <string name="signin_other_error">Google Play Game 로그인 중 에러가 발생하였습니다. 나중에 다시 시도해 주세요. </string>
 </resources>

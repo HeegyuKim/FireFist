@@ -192,26 +192,4 @@ implements GoogleApiClient.ConnectionCallbacks
     }
 
 
-	public static PlusClient createPlusClient(
-			Context context,
-			GooglePlayServicesClient.ConnectionCallbacks callbacks,
-			GooglePlayServicesClient.OnConnectionFailedListener lis
-	)
-	{
-		return new PlusClient.Builder(context, callbacks, lis)
-				.setScopes( TextUtils.join(
-								" ",
-								new String[]{
-										"https://www.googleapis.com/auth/plus.login",
-										"https://www.googleapis.com/auth/plus.me",
-										"https://www.googleapis.com/auth/userinfo.email"
-								}
-						)
-				)
-				.setActions(
-						"http://schemas.google.com/AddActivity",
-						"http://schemas.google.com/BuyActivity"
-				)
-				.build();
-	}
 }

@@ -39,6 +39,7 @@
         android:layout_height="wrap_content"
         android:text="점수 지우기"
         android:textSize="8pt"
+        android:visibility="invisible"
 
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"

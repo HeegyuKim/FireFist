@@ -9,61 +9,130 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        >
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/firefist_result"
-            android:scaleType="fitStart"
-            />
-
-        <TextView
-            android:id="@+id/main_text_notification"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_centerHorizontal="true"
-            android:textSize="16pt"
-            android:textColor="@android:color/black"
-            android:textStyle="bold"
-            />
-
-        <TextView
-            android:id="@+id/main_text_result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="0 N"
-            android:textSize="32pt"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:gravity="center"
-            android:layout_centerInParent="true"
-            android:paddingTop="50dp"
-            />
-    </RelativeLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
         android:layout_weight="4"
         >
 
-        <Button
-            android:id="@+id/main_button_breaking_building"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="건물 부수기"
-            android:layout_weight="1"
+        <TextView
+            android:id="@+id/firefist_power"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/firefist_power"
+            android:textSize="15pt"
+            android:textStyle="bold"
+            android:layout_centerInParent="true"
             />
-        <Button
-            android:id="@+id/main_button_fighting"
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/firefist_mobile_icon"
+            android:layout_centerInParent="true"
+            android:layout_above="@+id/firefist_power"
+            />
+
+        <TextView
+            android:id="@+id/text_firefist_power"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0 N"
+            android:textSize="14pt"
+            android:textStyle="bold"
+            android:gravity="center"
+
+            android:layout_below="@+id/firefist_power"
+            android:layout_marginTop="35dp"
+            />
+
+        <TextView
+            android:id="@+id/text_notification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14pt"
+            android:textStyle="bold"
+            android:gravity="center"
+
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/another_mode"
+        android:textSize="10pt"
+        android:textColor="@color/firefist_orange"
+        android:textStyle="bold"
+
+        android:paddingLeft="15dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_marginTop="15dp"
+        />
+
+
+
+    <LinearLayout
+        android:id="@+id/button_cracking_building"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        >
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="대전하기"
             android:layout_weight="1"
+            android:text="@string/cracking_building"
+            android:textSize="12pt"
+            android:textColor="@android:color/darker_gray"
+            android:textStyle="bold"
+            android:gravity="center"
+            />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/firefist_crash_icon"
+            android:scaleType="center"
             />
 
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:visibility="gone"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/firefist_pvp"
+            android:textSize="12pt"
+            android:textColor="@android:color/darker_gray"
+            android:textStyle="bold"
+            android:gravity="center"
+            />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/firefist_pvp_icon"
+            android:scaleType="center"
+            />
+
+    </LinearLayout>
+
+
 </LinearLayout>

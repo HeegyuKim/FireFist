@@ -42,6 +42,20 @@ public class GameActivity extends Activity
         , GoogleApiClient.ConnectionCallbacks
 {
 
+	public static final String
+			PREFERENCE_NAME = "LocalScoreBoard",
+			KEY_BEST_SCORE = "best-score",
+			KEY_CAMULATED_SCORE = "camulated-score",
+			KEY_EXPERIENCE = "experience",
+			KEY_COINS = "coins"
+					;
+
+	public static final String PATH_WATCH_METER = "watch-meter";
+
+
+
+
+
     private TextView textScore, textNotification;
     private Button btnReset;
 
@@ -152,7 +166,8 @@ public class GameActivity extends Activity
     private void setScoreText(float score)
     {
         String text = String.format("%.1f점", score);
-        textScore.setText(text);
+        if(textScore != null)
+	        textScore.setText(text);
     }
 
     // 최고 점수를 변경하는 메서드
@@ -160,7 +175,10 @@ public class GameActivity extends Activity
     {
         this.maxScore = maxScore;
 
-        textNotification.setText("최고점수 갱신!");
+        if(textNotification == null || maxScore < 25)
+	        return;
+
+	    textNotification.setText("최고점수 갱신!");
 
         if(lastTask != null && !lastTask.isFinished())
         {
@@ -201,7 +219,7 @@ public class GameActivity extends Activity
                 if(!put)
                 {
                     Log.d("게임", "새로운 데이터 맵 요청이 추가됨.");
-                    PutDataMapRequest request = PutDataMapRequest.create("/player");
+                    PutDataMapRequest request = PutDataMapRequest.create("/" + PATH_WATCH_METER);
                     putData(request.getDataMap());
                     Wearable.DataApi.putDataItem(client, request.asPutDataRequest());
                 }
@@ -211,23 +229,24 @@ public class GameActivity extends Activity
 
     private void putData(DataMap map)
     {
-        float syncBest = map.getFloat("best_score", 0);
+        float syncBest = map.getFloat(KEY_BEST_SCORE, 0);
         if(syncBest < maxScore)
-            map.putFloat("best_score", maxScore);
+            map.putFloat(KEY_BEST_SCORE, maxScore);
 
-        float syncTotal = map.getFloat("camul_score", 0);
+        float syncTotal = map.getFloat(KEY_CAMULATED_SCORE, 0);
         syncTotal += score.getScore();
-        map.putFloat("camul_score", syncTotal);
+        map.putFloat(KEY_CAMULATED_SCORE, syncTotal);
 
-        float exp = map.getFloat("exp", 0);
-        exp += 1;
-        map.putFloat("exp", exp);
-
+	    if(score.getScore() > 25) {
+		    float exp = map.getFloat(KEY_EXPERIENCE, 0);
+		    exp += 1;
+		    map.putFloat(KEY_EXPERIENCE, exp);
+	    }
     }
 
     private boolean isPlayerUri(Uri uri)
     {
-        return uri.getPath().equals("/player");
+        return uri.getPath().equals(PATH_WATCH_METER);
     }
 
     @Override
@@ -238,7 +257,6 @@ public class GameActivity extends Activity
                 break;
         }
     }
-
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -252,26 +270,24 @@ public class GameActivity extends Activity
         {
             float currScore = score.getScore();
 
-            if(currScore < 5)
-                return;
-
             // 최고점수 갱신
             if(currScore > maxScore)
             {
                 setMaxScore(currScore);
             }
 
-            //
-            setScoreText(currScore);
-            score.notifyChanging();
+	        if(currScore > 10) {
+		        //
+		        setScoreText(currScore);
+		        score.notifyChanging();
 
-            exp += currScore / 10.0f;
-            totalScore += currScore;
+		        exp += currScore / 10.0f;
+		        totalScore += currScore;
 
-            if(connected)
-            {
-                syncData();
-            }
+		        if (connected) {
+			        syncData();
+		        }
+	        }
         }
     }
 

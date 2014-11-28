@@ -1,4 +1,4 @@
-package unipi.kr.firefist.game;
+package unipi.kr.firefist.gaming;
 
 import android.widget.TextView;
 
@@ -18,7 +18,7 @@ public class NotificationClearTask implements  Runnable {
         this.finished = false;
     }
 
-    public void SetActivation(boolean activation)
+    public void setActivation(boolean activation)
     {
         this.activation = activation;
     }

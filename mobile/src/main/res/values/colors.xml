@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="firefist_orange">#ff6600</color>
+    <color name="firefist_darker_gray">#909090</color>
 </resources>

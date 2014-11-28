@@ -65,24 +65,30 @@ public abstract class ActivityPlus
 	}
 
 
-	public static void alert(Context ctx, String message,
+	public void alert(String message,
 	                         AlertDialog.OnClickListener lis)
 	{
-		new AlertDialog.Builder(ctx)
+		new AlertDialog.Builder(this)
 				.setMessage(message)
 				.setPositiveButton(android.R.string.yes, lis)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 				.show();
 	}
 
-	public static void alert(Context ctx, String message, String title,
+	public void alert(String message, String title,
 	                         AlertDialog.OnClickListener lis)
 	{
-		new AlertDialog.Builder(ctx)
+		new AlertDialog.Builder(this)
 				.setTitle(title)
 				.setMessage(message)
 				.setPositiveButton(android.R.string.yes, lis)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 				.show();
+	}
+
+
+	public String string(int id)
+	{
+		return getString(id);
 	}
 }
