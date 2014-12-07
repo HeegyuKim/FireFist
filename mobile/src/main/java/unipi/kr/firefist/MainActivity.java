@@ -14,7 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import unipi.kr.firefist.gaming.IScoreBoard;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import unipi.kr.firefist.api.Container;
+import unipi.kr.firefist.api.GooglePlus;
+import unipi.kr.firefist.api.IScoreBoard;
 import unipi.kr.firefist.gaming.LocalScoreBoard;
 import unipi.kr.firefist.gaming.NotificationClearTask;
 import unipi.kr.firefist.gaming.ScoreMeter;
@@ -41,6 +45,7 @@ public class MainActivity
 	IScoreBoard board;
 	NotificationClearTask lastTask;
 
+	Container container;
 
 
 	//
@@ -50,13 +55,39 @@ public class MainActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		initFeatures();
+		onClick(R.id.button_cracking_building, this);
+	}
+
+	private void initFeatures()
+	{
+		container = new Container();
+
 		handler = new Handler();
 		meter = new ScoreMeter();
 		meter.setHandler(this);
-		board = new LocalScoreBoard(this);
 
-		onClick(R.id.button_cracking_building, this);
+		Intent it = getIntent();
+		String account = it.getStringExtra("account");
+		if(account.equals(SplashActivity.ACCOUNT_NONE))
+			board = new LocalScoreBoard(this);
+		else
+		{
+			final GooglePlus plus = new GooglePlus(this, container);
+			plus.client.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+				@Override
+				public void onConnected(Bundle bundle) {
+					board = plus.leaderBoard;
+				}
+
+				@Override
+				public void onConnectionSuspended(int i) {
+					board = null;
+				}
+			});
+		}
 	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -87,6 +118,7 @@ public class MainActivity
 			case R.id.button_cracking_building:
 			{
 				Intent it = new Intent(this, CrackingActivity.class);
+
 				startActivity(it);
 				break;
 			}
@@ -99,7 +131,7 @@ public class MainActivity
 	@Override
 	protected void onStart() {
 		super.onStart();
-
+		container.setEnable(true);
 		try {
 			mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
 			mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -120,6 +152,7 @@ public class MainActivity
 	@Override
 	protected void onStop() {
 		super.onStop();
+		container.setEnable(false);
 		if(mSensorLinear != null)
 		{
 			mSensorManager.unregisterListener(this);
@@ -151,7 +184,13 @@ public class MainActivity
 				score,
 				string(R.string.score_unit)
 				);
-		board.addScore(score);
+
+		if(board != null)
+		{
+			board.addScore(score);
+			board.addExp(0.1);
+		}
+
 		log_d("측정점수", score + "");
 	}
 
@@ -168,7 +207,11 @@ public class MainActivity
 		lastTask = new NotificationClearTask(viewNotify);
 
 
-		board.setBestScore(bestScore);
+		if(board != null)
+		{
+			board.setBestScore(bestScore);
+			board.addExp(0.5);
+		}
 		viewNotify.setText(getString(R.string.new_best_score));
 
 

@@ -1,5 +1,6 @@
 package unipi.kr.firefist.gaming;
 
+import unipi.kr.firefist.api.IFeature;
 import unipi.kr.firefist.utils.Vector3;
 
 /**
@@ -53,6 +54,7 @@ public class ScoreMeter {
 
 
 		float score = length;
+		attributes.exp += 0.1;
 
 		if(handler != null)
 			handler.onScoreMeasured(score, this);
@@ -62,6 +64,7 @@ public class ScoreMeter {
 		if(attributes.bestScore < score)
 		{
 			attributes.bestScore = score;
+			attributes.exp += 0.5;
 			attributes.notifyChanged();
 
 			if(handler != null)

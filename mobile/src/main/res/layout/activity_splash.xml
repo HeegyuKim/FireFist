@@ -13,14 +13,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/splash_button_googleplus_signin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"
-        android:visibility="invisible"
-        />
+        android:gravity="center"
+        android:orientation="vertical"
+        >
+
+
+        <Button
+            android:id="@+id/btn_just_go"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/just_go"
+            />
+
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/splash_button_googleplus_signin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+
+
+    </LinearLayout>
 
 </RelativeLayout>

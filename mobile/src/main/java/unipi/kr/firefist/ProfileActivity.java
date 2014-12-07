@@ -1,28 +1,20 @@
 package unipi.kr.firefist;
 
 import android.content.Intent;
-import android.content.IntentSender;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.volley.toolbox.NetworkImageView;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.leaderboard.LeaderboardScore;
-import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 
+import unipi.kr.firefist.api.Container;
+import unipi.kr.firefist.api.GooglePlus;
 import unipi.kr.firefist.api.Watch;
-import unipi.kr.firefist.game.FireFist;
-import unipi.kr.firefist.game.PlayerData;
-import unipi.kr.firefist.game.PlayerListener;
-import unipi.kr.firefist.gaming.IScoreBoard;
+import unipi.kr.firefist.api.IScoreBoard;
 import unipi.kr.firefist.gaming.LevelTable;
 import unipi.kr.firefist.gaming.LocalScoreBoard;
 import unipi.kr.firefist.gaming.PlayerAttributes;
@@ -34,16 +26,17 @@ public class ProfileActivity
 extends ActivityPlus
 implements PlayerHandler,
 		Watch.Handler,
-		GoogleApiClient.OnConnectionFailedListener,
 		GoogleApiClient.ConnectionCallbacks
 {
 	private static final int REQ_CONNECT_GOOGLE_API = 1011;
 
-	GoogleApiClient client;
+	Container container;
 
 	IScoreBoard board;
-	PlayerAttributes attributes;
+	GooglePlus plus;
 	Watch watch;
+
+	PlayerAttributes attributes;
 
 
 
@@ -52,25 +45,43 @@ implements PlayerHandler,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_profile);
 
-		client = new GoogleApiClient.Builder(this)
-				.addApi(Plus.API)
-				.addScope(Plus.SCOPE_PLUS_LOGIN)
-				.addScope(Plus.SCOPE_PLUS_PROFILE)
-				//.addApi(Games.API)
-				//.addScope(Games.SCOPE_GAMES)
-				.addConnectionCallbacks(this)
-				.addOnConnectionFailedListener(this)
-				.build();
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		initFeatures();
+	}
 
-		watch = new Watch(this);
+	private void initFeatures()
+	{
+		container = new Container();
+
+		plus = new GooglePlus(this, container);
+		plus.setResolveFailed(this, true);
+		plus.client.registerConnectionCallbacks(this);
+		board = plus.leaderBoard;
+
+		watch = new Watch(this, container);
 		watch.setHandler(this);
-		board = new LocalScoreBoard(this);
+
 		attributes = new PlayerAttributes();
 		attributes.setHandler(this);
-		board.loadAttributesTo(attributes);
-
-		getActionBar().setDisplayHomeAsUpEnabled(true);
 	}
+
+
+
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		container.setEnable(true);
+	}
+
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		container.setEnable(false);
+	}
+
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -85,7 +96,8 @@ implements PlayerHandler,
 		// 로그아웃
 		if(id == R.id.action_logout)
 		{
-			Plus.AccountApi.clearDefaultAccount(client);
+			if(plus.isConnected())
+				Plus.AccountApi.clearDefaultAccount(plus.client);
 			watch.clearData();
 			board.clear();
 
@@ -104,6 +116,11 @@ implements PlayerHandler,
 	}
 
 
+
+
+
+
+
 	// 시계에서 정보가 왔을 때,
 	@Override
 	public void onWatchMeasured(PlayerAttributes watchAttr, Watch watch)
@@ -119,8 +136,9 @@ implements PlayerHandler,
 
 	@Override
 	public void onPlayerChanged(PlayerAttributes attr) {
+		log_d("Profile", "Player Attributes has changed");
 		showAttributes(attr);
-		board.saveAttributesTo(attr);
+		board.saveAttributesFrom(attr);
 	}
 
 	private void showAttributes(PlayerAttributes attr)
@@ -159,48 +177,28 @@ implements PlayerHandler,
 	public void onConnected(Bundle bundle) {
 		log_d("Google API", "연결됨");
 
-		Person me = Plus.PeopleApi.getCurrentPerson(client);
+		Person me = Plus.PeopleApi.getCurrentPerson(plus.client);
 		setProfile(me);
 
+		board.loadAttributesTo(this);
 	}
 
 	@Override
 	public void onConnectionSuspended(int i) {
 		log_d("Google API", "연결 중단됨, 재시도");
-		client.connect();
 	}
 
-
-	@Override
-	public void onConnectionFailed(ConnectionResult connectionResult) {
-		log_d("Google API", "연결 실패");
-		if(connectionResult.hasResolution())
-		{
-			log_d("Google API", "오류 해결 시도");
-			try
-			{
-				connectionResult.startResolutionForResult(this, REQ_CONNECT_GOOGLE_API);
-			}
-			catch(IntentSender.SendIntentException e)
-			{
-				log_d("Google API", "SendIntentException");
-				client.connect();
-			}
-		}
-		else
-			toast("Google API에 연결하지 못했습니다.", Toast.LENGTH_LONG);
-	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch(requestCode)
 		{
-			case REQ_CONNECT_GOOGLE_API:
+			case GooglePlus.REQUEST_RESOLVE_FAILED:
 			{
 				if(resultCode == RESULT_OK)
 				{
 					log_d("Google API", "오류 해결 성공, 다시 연결");
-					client.connect();
+					plus.connect();
 				}
 				else
 				{
@@ -240,25 +238,6 @@ implements PlayerHandler,
 		text_(R.id.profile_text_name, person.getDisplayName());
 	}
 
-
-
-
-
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-		client.connect();
-		watch.connect();
-	}
-
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-		client.disconnect();
-		watch.disconnect();
-	}
 
 
 

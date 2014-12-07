@@ -3,7 +3,6 @@
     tools:context="unipi.kr.firefist.ProfileActivity" >
     <item android:id="@+id/action_logout"
         android:title="@string/logout"
-        android:icon="@drawable/sel_logout"
         android:orderInCategory="100"
         android:showAsAction="always"
         />

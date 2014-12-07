@@ -19,10 +19,16 @@ public abstract class ActivityPlus
         return findViewById(id);
     }
 
-    public void onClick(int id, View.OnClickListener lis)
-    {
-        view_(id).setOnClickListener(lis);
-    }
+	public void onClick(int id, View.OnClickListener lis)
+	{
+		view_(id).setOnClickListener(lis);
+	}
+
+	public void onClick(View.OnClickListener lis, int ...ids)
+	{
+		for(int id : ids)
+			view_(id).setOnClickListener(lis);
+	}
 
     public void toast(String text, int duration)
     {
@@ -47,6 +53,15 @@ public abstract class ActivityPlus
     {
         textView_(id).setText(text.toString());
     }
+
+	public void text_id(int id, int stringId)
+	{
+		text_(id, string(stringId));
+	}
+	public void text_idf(int id, int formatId, Object ...args)
+	{
+		text_(id, getString(formatId, args));
+	}
 
     public void text_f(int id, String format, Object ...args)
     {

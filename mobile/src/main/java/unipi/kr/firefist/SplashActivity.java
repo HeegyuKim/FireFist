@@ -14,21 +14,17 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.plus.Plus;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
+import unipi.kr.firefist.api.GooglePlus;
 import unipi.kr.firefist.utils.ActivityPlus;
 
 public class SplashActivity extends ActivityPlus
-		implements GoogleApiClient.OnConnectionFailedListener,
-		GoogleApiClient.ConnectionCallbacks,
+		implements
 		View.OnClickListener
 {
-	private static final int REQUEST_PLUS_SIGNIN = 10101,
-			REQUEST_PLUS_CONNECTION_ERROR = 10102,
-			REQUEST_GAME_SIGNIN_ERROR = 12312;
+	public static final String ACCOUNT_NONE = "none",
+								ACCOUNT_GOOGLE_PLUS = "google_plus";
 
-
-	GoogleApiClient client;
-	ConnectionResult result;
-	ProgressDialog dialog;
+	GooglePlus plus;
 
 
 	@Override
@@ -36,132 +32,83 @@ public class SplashActivity extends ActivityPlus
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_splash);
 
-		onClick(R.id.splash_button_googleplus_signin, this);
-
-		client = new GoogleApiClient.Builder(this)
-				.addApi(Plus.API)
-				.addScope(Plus.SCOPE_PLUS_LOGIN)
-				.addScope(Plus.SCOPE_PLUS_PROFILE)
-				//.addApi(Games.API)
-				//.addScope(Games.SCOPE_GAMES)
-				.addOnConnectionFailedListener(this)
-				.addConnectionCallbacks(this)
-				.build();
-		dialog = ProgressDialog.show(this, "", getString(R.string.connecting));
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-		client.connect();
+		onClick(this,
+				R.id.splash_button_googleplus_signin,
+				R.id.btn_just_go
+		);
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		if(client != null && client.isConnected())
+		if(plus != null)
+			plus.disconnect();
+	}
+
+	@Override
+	public void onClick(View view)
+	{
+		switch(view.getId())
 		{
-			client.disconnect();
+			case R.id.btn_just_go:
+			{
+				log_d("Splash", "Just Go Clicked");
+				goNext(ACCOUNT_NONE);
+				break;
+			}
+			case R.id.splash_button_googleplus_signin:
+			{
+				log_d("Splash", "Google+ SignIn Clicked");
+				signInGooglePlus();
+				break;
+			}
 		}
 	}
 
-	int errorCode;
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		switch(requestCode)
+		if(requestCode == GooglePlus.REQUEST_RESOLVE_FAILED)
 		{
-			case REQUEST_PLUS_CONNECTION_ERROR:
+			if(resultCode == RESULT_OK)
 			{
-				if(resultCode == RESULT_OK)
-				{
-					Log.d("Google+", "재연결");
-					client.connect();
-				}
-				else
-				{
-					Log.d("Google+", "재연결 실패...");
-				}
-				break;
+				plus.connect();
 			}
-			case REQUEST_GAME_SIGNIN_ERROR:
+			else
 			{
-				if(resultCode == RESULT_OK)
-				{
-					Log.d("Google Play Game", "재연결 성공");
-				}
-				else
-				{
-					Log.d("Google Play Game", "재연결 실패, 에러 코드 " + errorCode );
-					BaseGameUtils.showActivityResultError(
-							this,
-							requestCode,
-							R.string.sign_in_failed,
-							errorCode,
-							R.string.signin_other_error
-					);
-				}
+				toast(string(R.string.could_not_signin_google_plus), Toast.LENGTH_LONG);
 			}
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	@Override
-	public void onConnectionFailed(ConnectionResult connectionResult) {
-		Log.d("Google+", "연결 실패;");
-
-		dialog.dismiss();
-		dialog = null;
-		view_(R.id.splash_button_googleplus_signin).setVisibility(View.VISIBLE);
 
 
-		if(connectionResult.hasResolution())
-		{
-			try {
-				Log.d("Google+", "연결 재시도");
-				connectionResult.startResolutionForResult(
-						this,
-						REQUEST_PLUS_CONNECTION_ERROR
-				);
-			}
-			catch(IntentSender.SendIntentException e) {
-				client.connect();
-			}
-		}
-		else
-		{
-			toast("Google+ 연결이 안되네요...", Toast.LENGTH_LONG);
-		}
-	}
-
-	@Override
-	public void onConnected(Bundle bundle) {
-		Log.d("Google+", "연결됨!");
-		if(dialog != null)
-			dialog.dismiss();
-		goNext();
-	}
-
-	@Override
-	public void onConnectionSuspended(int i) {
-		Log.d("Google+", "연결 중단됨!");
-	}
-
-
-	@Override
-	public void onClick(View view) {
-
-		if(dialog == null)
-		{
-			dialog = ProgressDialog.show(this, "", getString(R.string.connecting));
-		}
-		client.connect();
-	}
-
-
-	private void goNext()
+	private void goNext(String account)
 	{
 		Intent it = new Intent(this, MainActivity.class);
+		it.putExtra("account", account);
 		startActivity(it);
 		finish();
+	}
+
+
+
+	private void signInGooglePlus()
+	{
+		plus = new GooglePlus(this, null);
+		plus.setResolveFailed(this, true);
+		plus.client.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+			@Override
+			public void onConnected(Bundle bundle) {
+				goNext(ACCOUNT_GOOGLE_PLUS);
+			}
+
+			@Override
+			public void onConnectionSuspended(int i) {
+
+			}
+		});
+		plus.connect();
 	}
 }

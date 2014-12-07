@@ -3,6 +3,8 @@ package unipi.kr.firefist.gaming;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import unipi.kr.firefist.api.IScoreBoard;
+
 /**
  * Created by KimHeeKue on 2014-11-26.
  */
@@ -15,6 +17,16 @@ public class LocalScoreBoard implements IScoreBoard
 	public LocalScoreBoard(Context context)
 	{
 		pref = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+	}
+
+	@Override
+	public void connect() {
+
+	}
+
+	@Override
+	public void disconnect() {
+
 	}
 
 	@Override
@@ -74,16 +86,17 @@ public class LocalScoreBoard implements IScoreBoard
 
 
 	@Override
-	public void loadAttributesTo(PlayerAttributes attr) {
+	public void loadAttributesTo(PlayerHandler handler) {
+		PlayerAttributes attr = new PlayerAttributes();
 		attr.bestScore = pref.getFloat(KEY_BEST_SCORE, 0);
 		attr.camulScore = pref.getFloat(KEY_CAMULATED_SCORE, 0);
 		attr.coins = pref.getInt(KEY_COINS, 0);
 		attr.exp = pref.getFloat(KEY_EXPERIENCE, 0);
-		attr.notifyChanged();
+		handler.onPlayerChanged(attr);
 	}
 
 	@Override
-	public void saveAttributesTo(PlayerAttributes attr) {
+	public void saveAttributesFrom(PlayerAttributes attr) {
 		editor = pref.edit();
 		editor.putFloat(KEY_BEST_SCORE, (float)attr.bestScore);
 		editor.putFloat(KEY_CAMULATED_SCORE, (float)attr.camulScore);

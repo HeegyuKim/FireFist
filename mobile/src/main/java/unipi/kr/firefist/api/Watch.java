@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -17,7 +16,7 @@ import com.google.android.gms.wearable.Wearable;
 
 import unipi.kr.firefist.gaming.PlayerAttributes;
 
-import static unipi.kr.firefist.gaming.IScoreBoard.*;
+import static unipi.kr.firefist.api.IScoreBoard.*;
 
 /**
  * Created by KimHeeKue on 2014-11-26.
@@ -25,7 +24,8 @@ import static unipi.kr.firefist.gaming.IScoreBoard.*;
 public class Watch
 implements GoogleApiClient.ConnectionCallbacks,
 		GoogleApiClient.OnConnectionFailedListener,
-		DataApi.DataListener
+		DataApi.DataListener,
+		IFeature
 {
 
 	public static interface Handler
@@ -43,9 +43,12 @@ implements GoogleApiClient.ConnectionCallbacks,
 	Uri uri;
 
 
-	public Watch(Context context)
+	public Watch(Context context, Container container)
 	{
 		this.context = context;
+		if(container != null)
+			container.featureList.add(this);
+
 		client = new GoogleApiClient.Builder(context)
 				.addApi(Wearable.API)
 				.addOnConnectionFailedListener(this)
@@ -164,4 +167,24 @@ implements GoogleApiClient.ConnectionCallbacks,
 		this.handler = handler;
 	}
 
+
+	boolean enabled = false;
+
+	@Override
+	public void setEnable(boolean enabled)
+	{
+		if(this.enabled == enabled) return;
+
+		this.enabled = enabled;
+		if(enabled)
+			connect();
+		else
+			disconnect();
+	}
+
+	@Override
+	public boolean isEnabled()
+	{
+		return enabled;
+	}
 }
